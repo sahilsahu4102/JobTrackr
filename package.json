@@ -1,0 +1,15 @@
+{
+  "name": "jobtrackr",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server/dist/index.js",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd frontend && npm run dev",
+    "build:server": "cd server && npm run build",
+    "build:client": "cd frontend && npm run build"
+  },
+  "dependencies": {
+    "mongodb": "^7.1.1"
+  }
+}
