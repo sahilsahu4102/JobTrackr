@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* ===== Lumina Graphite Design System ===== */
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Primary palette */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a3a6ff;
+  --color-primary-400: #8387ff;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #6063ee;
+  --color-primary-700: #494bd7;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+
+  /* Surfaces */
+  --color-surface: #060e20;
+  --color-surface-dim: #060e20;
+  --color-surface-bright: #1f2b49;
+  --color-surface-container-lowest: #000000;
+  --color-surface-container-low: #091328;
+  --color-surface-container: #0f1930;
+  --color-surface-container-high: #141f38;
+  --color-surface-container-highest: #192540;
+
+  /* Legacy dark aliases */
+  --color-dark-950: #060e20;
+  --color-dark-900: #091328;
+  --color-dark-800: #0f1930;
+  --color-dark-700: #141f38;
+  --color-dark-600: #40485d;
+
+  /* Text */
+  --color-on-surface: #dee5ff;
+  --color-on-surface-variant: #a3aac4;
+  --color-outline: #6d758c;
+  --color-outline-variant: #40485d;
+
+  /* Accents */
+  --color-accent-violet: #c890ff;
+  --color-accent-cyan: #06b6d4;
+  --color-accent-emerald: #10b981;
+  --color-accent-amber: #f59e0b;
+  --color-accent-rose: #ff6e84;
+  --color-secondary: #8a95ff;
+}
+
+/* ===== Base Reset ===== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: #060e20;
+  color: #dee5ff;
+  min-height: 100vh;
+}
+
+/* ===== Scrollbar ===== */
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #091328; }
+::-webkit-scrollbar-thumb { background: #40485d; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #6d758c; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #40485d; border-radius: 3px; }
+
+/* ===== Glass Card ===== */
+
+.glass-card {
+  background: rgba(20, 31, 56, 0.65) !important;
+  backdrop-filter: blur(32px) !important;
+  -webkit-backdrop-filter: blur(32px) !important;
+  border: 1px solid rgba(163, 166, 255, 0.08) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+}
+
+.glass-card-hover:hover {
+  background: rgba(25, 37, 64, 0.8) !important;
+  border-color: rgba(163, 166, 255, 0.15) !important;
+}
+
+/* ===== Gradient Text ===== */
+
+.gradient-text {
+  background: linear-gradient(135deg, #a3a6ff, #c890ff) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+/* ===== Floating Orb Decorations ===== */
+
+.orb-primary {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(96, 99, 238, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.orb-tertiary {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(190, 131, 250, 0.10) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+/* ===== Focus Ring ===== */
+
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+/* ===== Animations ===== */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(163, 166, 255, 0.05), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+.animate-pulse-soft { animation: pulse-soft 3s ease-in-out infinite; }
