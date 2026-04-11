@@ -12,6 +12,7 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string().min(1, 'OPENROUTER_API_KEY is required'),
   SCRAPINGDOG_API_KEY: z.string().optional(),
+  CLIENT_URL: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

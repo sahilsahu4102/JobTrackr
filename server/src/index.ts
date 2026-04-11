@@ -13,18 +13,26 @@ const app = express();
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: env.NODE_ENV === 'production'
-    ? 'https://your-production-domain.com'
-    : 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(cors());
 app.use(morgan(env.NODE_ENV === 'development' ? 'dev' : 'combined'));
+app.use((req, _res, next) => {
+  console.log(`🔍 [${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 app.use(express.json({ limit: '10mb' }));
 
-// Health check
+// Health check & Root
+app.get('/', (_req, res) => {
+  res.send('JobTrackr API is live! Use /api/health for status.');
+});
+
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    env: env.NODE_ENV,
+    db: 'connected' // Simple mock for now
+  });
 });
 
 // Routes
