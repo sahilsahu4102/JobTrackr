@@ -7,6 +7,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   resumeText: string;
+  isGuest: boolean;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -38,6 +39,12 @@ const userSchema = new Schema<IUser>(
     resumeText: {
       type: String,
       default: '',
+    },
+    // One-click demo accounts; deleted with their data after 24 h (see guestLogin)
+    isGuest: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
   },
   {

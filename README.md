@@ -148,7 +148,7 @@ jobtrackr/
 │       │   ├── db.ts                  # MongoDB Atlas connection
 │       │   └── env.ts                 # Zod-validated environment config
 │       ├── controllers/
-│       │   ├── auth.controller.ts     # Register, login, profile
+│       │   ├── auth.controller.ts     # Register, login, guest login, profile
 │       │   ├── application.controller.ts  # Full CRUD + batch reorder + activities
 │       │   └── ai.controller.ts       # JD parsing orchestrator
 │       ├── middleware/
@@ -186,6 +186,7 @@ jobtrackr/
 |:-------|:--------------------|:---------------------------|:-----|
 | `POST` | `/api/auth/register`| Create new user account    | No   |
 | `POST` | `/api/auth/login`   | Authenticate & receive JWT | No   |
+| `POST` | `/api/auth/guest`   | One-click demo account with sample applications (24 h) | No   |
 | `GET`  | `/api/auth/me`      | Fetch current user profile | JWT  |
 | `PUT`  | `/api/auth/profile` | Update name & resume text  | JWT  |
 

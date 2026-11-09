@@ -1,7 +1,10 @@
 import { Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { User } from '../models/User.js';
+import { Application } from '../models/Application.js';
+import { GUEST_RESUME, sampleApplications } from '../data/guestSeed.js';
 import { env } from '../config/env.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -25,9 +28,9 @@ const updateProfileSchema = z.object({
 });
 
 // Generate JWT token
-const generateToken = (userId: string): string => {
+const generateToken = (userId: string, expiresIn: string = env.JWT_EXPIRES_IN): string => {
   return jwt.sign({ userId }, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRES_IN as any,
+    expiresIn: expiresIn as any,
   });
 };
 
@@ -97,6 +100,45 @@ export const login = asyncHandler(
           resumeText: user.resumeText,
         },
         token,
+      },
+    });
+  }
+);
+
+// Guests live 24 h. The cap keeps an open, unauthenticated endpoint from filling the free
+// 512 MB Atlas tier; ponytail: a per-IP rate limit if this is ever abused.
+const GUEST_TTL_MS = 24 * 60 * 60 * 1000;
+const MAX_GUESTS = 200;
+
+// @desc    One-click demo account with sample applications (for recruiters and reviewers)
+// @route   POST /api/auth/guest
+// @access  Public
+export const guestLogin = asyncHandler(
+  async (_req: AuthRequest, res: Response): Promise<void> => {
+    // Sweep expired guests and their applications
+    const expired = await User.distinct('_id', { isGuest: true, createdAt: { $lt: new Date(Date.now() - GUEST_TTL_MS) } });
+    if (expired.length) {
+      await Application.deleteMany({ userId: { $in: expired } });
+      await User.deleteMany({ _id: { $in: expired } });
+    }
+    if ((await User.countDocuments({ isGuest: true })) >= MAX_GUESTS) {
+      throw new ApiError(429, 'Too many guest sessions right now. Please try again later or sign up.');
+    }
+
+    const user = await User.create({
+      name: 'Guest',
+      email: `guest-${randomUUID()}@guest.jobtrackr.app`,
+      password: randomUUID(), // never shown; the token is the only way back in
+      resumeText: GUEST_RESUME,
+      isGuest: true,
+    });
+    await Application.insertMany(sampleApplications(user._id));
+
+    res.status(201).json({
+      success: true,
+      data: {
+        user: { id: user._id, name: user.name, email: user.email, resumeText: user.resumeText },
+        token: generateToken(user._id.toString(), '1d'),
       },
     });
   }

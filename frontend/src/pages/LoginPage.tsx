@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,6 +23,7 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
+  const [guestLoading, setGuestLoading] = useState(false);
 
   const {
     register,
@@ -41,6 +42,21 @@ export const LoginPage: React.FC = () => {
     } catch (err) {
       const error = err as any;
       toast.error(error.response?.data?.message || 'Login failed. Please try again.');
+    }
+  };
+
+  // One click: the server makes a throwaway account with sample applications (kept 24 h)
+  const continueAsGuest = async () => {
+    setGuestLoading(true);
+    try {
+      const response = await api.post<AuthResponse>('/auth/guest');
+      login(response.data.data.token, response.data.data.user);
+      toast.success('You are in as a guest. Sample applications are loaded.');
+      navigate(from, { replace: true });
+    } catch (err) {
+      const error = err as any;
+      toast.error(error.response?.data?.message || 'Could not start a guest session. Please try again.');
+      setGuestLoading(false);
     }
   };
 
@@ -83,7 +99,19 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          <div style={{ marginTop: 32, textAlign: 'center', fontSize: 14, color: '#a3aac4' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0', color: '#6d758c', fontSize: 12 }}>
+            <div style={{ flex: 1, height: 1, backgroundColor: 'rgba(64,72,93,0.3)' }} />
+            or
+            <div style={{ flex: 1, height: 1, backgroundColor: 'rgba(64,72,93,0.3)' }} />
+          </div>
+          <Button type="button" variant="outline" onClick={continueAsGuest} isLoading={guestLoading} disabled={isSubmitting} style={{ width: '100%', height: 48, fontSize: 15, borderRadius: 14 }}>
+            Continue as guest
+          </Button>
+          <p style={{ marginTop: 10, textAlign: 'center', fontSize: 12, color: '#6d758c' }}>
+            No sign-up. Opens with sample applications, so you can try everything.
+          </p>
+
+          <div style={{ marginTop: 28, textAlign: 'center', fontSize: 14, color: '#a3aac4' }}>
             Don&apos;t have an account?{' '}
             <Link to="/register" style={{ fontWeight: 600, color: '#a3a6ff', textDecoration: 'none' }}>
               Sign up
