@@ -14,6 +14,12 @@ An intelligent full-stack job tracking platform that combines a drag-and-drop Ka
 
 ---
 
+## 👀 Try It Without Signing Up
+
+Open the login page and click **Continue as guest**. You land on a board with six sample applications and a sample resume, so you can drag cards, open the dashboard, or paste any job posting and get a match score straight away. Each guest gets a private copy that is deleted after 24 hours. If the server has been idle, the first click can take up to a minute to wake it.
+
+---
+
 ## 🧠 Why JobTrackr Exists
 
 The modern job search is chaos. Applicants juggle dozens of applications across LinkedIn, Indeed, Wellfound, and company portals — losing track of where they applied, what skills each role demanded, and which resume version they sent.
@@ -260,6 +266,38 @@ cd frontend && npm run dev
 ```
 
 Open `http://localhost:5173` in your browser.
+
+---
+
+## 🧪 Testing
+
+### Automated: `cd server && npm test` (15 checks, Node's built-in runner)
+
+**10 integration checks** run the real routes against a real MongoDB, in a throwaway database that is created for the run and dropped afterwards (your data is never touched). They need `MONGODB_URI` and are skipped without it. They make no AI calls, so they use no model quota.
+
+| Area | What is checked |
+|------|-----------------|
+| Guest login | returns a token and a profile with a sample resume; the account starts with 6 sample applications covering every board column |
+| Guest actions | a guest can add, drag to another column, and delete applications |
+| Isolation | two guests never share data, and one cannot delete the other's application (404) |
+| Cleanup | guests older than 24 h are deleted with their applications when the next guest arrives; younger guests are kept |
+| Limits | with 200 guests present the endpoint answers 429, and works again once there is room |
+| Security | a guest address cannot be logged into with a guessed password; every protected route answers 401 without a valid token |
+| Regression | normal sign-up, duplicate-email refusal, wrong-password refusal, login, and profile update still work, and a real user gets no sample data |
+
+**5 unit checks** (no network, no database) cover the sample-data shape and the AI reply handling: JSON read from plain text, a code fence, or prose; missing fields filled in; unusable replies rejected so the next model is tried; and a "hollow" answer (no skills, or no score although a resume was given) treated as a miss.
+
+To check that these checks catch real bugs, three bugs were put in on purpose and each made tests fail: the 24 h cleanup deleting the wrong guests (4 failures), the 200-guest cap removed (1 failure), and the sample data shared across guests (4 failures). The code was then restored and all 15 pass.
+
+### By hand, 2026-11-09
+
+- **Browser walk-through** (a Playwright-driven browser against a local server): login page, **Continue as guest**, the board with 6 sample cards, Profile (sample resume loaded), Dashboard (funnel and match-score charts populated), a page reload that stays signed in, **Sign out** back to the login page. The only console errors were the expected 404s from a leftover token of a deleted guest, which did not break the login page; the dashboard logs two chart-size warnings from the charts library.
+- **Live AI as a guest:** pasting a job posting returned company, role, location, required and nice-to-have skills, the missing skills, and an 88/100 match against the sample resume, in about 22 s on free models only.
+- **Reading job URLs:** 5 of 6 test URLs returned text, including a LinkedIn posting and a JavaScript-rendered careers page. The sixth was a deliberately dead page and failed with the "paste the text instead" message. A real LinkedIn posting went from URL to scored result in about 19 s.
+
+### Not tested
+
+AI extraction accuracy has not been measured (free models answer slightly differently on each run), there is no load test, and the frontend has no unit tests. The free models allow roughly 50 requests a day in total, so heavy AI use can hit that limit while the rest of the app keeps working.
 
 ---
 
