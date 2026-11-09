@@ -11,7 +11,10 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
   OPENAI_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string().min(1, 'OPENROUTER_API_KEY is required'),
-  SCRAPINGDOG_API_KEY: z.string().optional(),
+  // Optional model tried first (e.g. a paid one); the free models follow it.
+  OPENROUTER_MODEL: z.string().optional(),
+  // Optional comma-separated replacement for the built-in free-model list.
+  OPENROUTER_FREE_MODELS: z.string().optional(),
   CLIENT_URL: z.string().optional(),
 });
 

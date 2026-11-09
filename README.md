@@ -32,7 +32,7 @@ The result is a system that doesn't just track where you applied — it actively
 ## 🚀 Core Features
 
 ### 🤖 AI-Powered Job Extraction
-Paste any job posting URL or raw description text. The system scrapes the page (via [ScrapingDog](https://www.scrapingdog.com/) to bypass bot protections), feeds the content to an LLM, and returns structured data: company, role, location, salary, required skills, and nice-to-have skills — auto-filled into a single-click submission form.
+Paste any job posting URL or raw description text. The system fetches the page (directly, then through the free [Jina Reader](https://jina.ai/reader/) for sites that block scripts or render with JavaScript), feeds the content to an LLM, and returns structured data: company, role, location, salary, required skills, and nice-to-have skills — auto-filled into a single-click submission form.
 
 ### 📊 Resume Fit Analyzer
 Upload your "Master Resume" once in your Profile. Every time you extract a new job, the AI runs a zero-shot comparison and returns:
@@ -80,7 +80,8 @@ Glassmorphism design language with backdrop-blur panels, indigo accent gradients
 **The JobTrackr Solution:** Instead of coupling directly to OpenAI's API, the backend routes all LLM calls through [**OpenRouter**](https://openrouter.ai/) — a unified gateway that provides access to GPT-4o-mini, Claude, Llama, and dozens of other models through a single API key. This provides:
 
 - **Zero quota headaches** — OpenRouter's generous free tier never blocked development
-- **Model portability** — switch from `openai/gpt-4o-mini` to `anthropic/claude-3.5-sonnet` or `meta-llama/llama-3.1-8b` by changing one string
+- **Free by default** — parsing walks a chain of free OpenRouter models (strongest first) and moves on when one is busy, out of quota or answers with unusable JSON, so it works on an account with no credits. Set `OPENROUTER_MODEL` (e.g. `openai/gpt-4o-mini`) to try a paid model first, or `OPENROUTER_FREE_MODELS` to replace the chain
+- **Model portability** — switch models by changing one string
 - **Cost transparency** — OpenRouter shows exact per-request costs across all models
 - **Identical SDK compatibility** — OpenRouter mirrors the OpenAI SDK interface, so the codebase uses the standard `openai` npm package with just a `baseURL` override
 
@@ -102,9 +103,9 @@ Express.js REST API
   └── Centralized Error Handler
        ↓
 AI Parsing Pipeline
-  ├── ScrapingDog API (anti-bot bypass)
+  ├── Direct fetch, then Jina Reader (JavaScript-rendered and bot-protected pages)
   ├── Cheerio (HTML → clean plaintext)
-  └── OpenRouter → GPT-4o-mini (structured extraction)
+  └── OpenRouter → free-model chain (structured extraction)
        ↓
 MongoDB Atlas (Mongoose ODM)
   ├── Users (hashed passwords, resume text)
@@ -158,7 +159,7 @@ jobtrackr/
 │       │   ├── User.ts                # User schema with bcrypt hooks
 │       │   └── Application.ts         # Application schema (15+ fields)
 │       ├── services/
-│       │   └── ai.service.ts          # ScrapingDog + OpenRouter integration
+│       │   └── ai.service.ts          # page fetch + OpenRouter integration
 │       ├── routes/
 │       │   ├── auth.routes.ts
 │       │   ├── application.routes.ts
@@ -212,7 +213,7 @@ jobtrackr/
 - **Node.js** 18+
 - **npm** 9+
 - **MongoDB Atlas** account (free tier works)
-- **API Keys**: [OpenRouter](https://openrouter.ai/), [ScrapingDog](https://www.scrapingdog.com/) (optional but recommended)
+- **API key**: [OpenRouter](https://openrouter.ai/) (free models work without credits)
 
 ### 1. Clone & Install
 
@@ -245,7 +246,6 @@ MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/jobtrackr
 JWT_SECRET=your-strong-random-secret
 JWT_EXPIRES_IN=7d
 OPENROUTER_API_KEY=sk-or-v1-your-key-here
-SCRAPINGDOG_API_KEY=your-key-here
 ```
 
 ### 3. Run Development Servers
@@ -282,7 +282,7 @@ Detailed per-phase documentation is available in the [`docs/`](./docs) directory
 | Decision | Rationale |
 |:---------|:----------|
 | **OpenRouter over direct OpenAI** | OpenAI's rate limiting blocked development. OpenRouter provides identical SDK compatibility with zero quota issues and multi-model access. |
-| **ScrapingDog for URL scraping** | Direct `axios` requests to major job boards (LinkedIn, Indeed) are blocked by anti-bot protections. ScrapingDog acts as a headless proxy. |
+| **Direct fetch, then Jina Reader** | Plain `axios` requests to JavaScript-rendered or bot-protected job pages return little or nothing. The free Jina Reader loads the page in a real browser and returns text, with no key. Scrapingdog was used until its free plan ran out (every URL answered 403). |
 | **`@dnd-kit` over `react-beautiful-dnd`** | `react-beautiful-dnd` is unmaintained. `@dnd-kit` is actively developed, accessible, lightweight, and supports both pointer and keyboard sensors. |
 | **Optimistic updates with rollback** | Drag-and-drop must feel instant. We update React Query cache immediately, then roll back on server error. |
 | **Zod on both client and server** | Ensures a single validation contract between frontend forms and backend controllers. Any schema change automatically propagates. |

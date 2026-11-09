@@ -79,26 +79,23 @@ Both `frontend/` and `server/` use strict TypeScript (`"strict": true`). This wa
 ```
 User pastes URL
        ↓
-Is SCRAPINGDOG_API_KEY configured?
-  ├── YES → Route through ScrapingDog proxy API
-  │          (handles JS rendering, IP rotation, CAPTCHA bypass)
-  └── NO  → Direct axios GET with browser-like User-Agent headers
-       ↓
-HTML Response
+Direct axios GET with browser-like User-Agent headers
        ↓
 Cheerio: Strip <script>, <style>, <nav>, <footer>, <header>
        ↓
 Extract <body> plaintext → Collapse whitespace
        ↓
-Length check: text.length >= 50?
+Length check: text.length >= 500?   (a JavaScript shell has far less text than a job post)
   ├── YES → Pass to LLM
-  └── NO  → Throw friendly error: "Site is protected. Try pasting text manually."
+  └── NO  → Jina Reader (r.jina.ai): loads the page in a real browser, returns text
+              ├── >= 200 characters and not an error page → Pass to LLM
+              └── otherwise → friendly error: "Site is protected. Try pasting text manually."
 ```
 
-**Why ScrapingDog specifically?**
-- Supports `dynamic=false` mode for static HTML (faster and cheaper)
-- Simple query-string API — no SDK, no client library, just an HTTP redirect
-- Free tier provides 1,000 requests/month, sufficient for development and demos
+**Why the Jina Reader, and not a paid proxy?** (Updated 2026-11: the design first used Scrapingdog.)
+- It renders JavaScript, so Lever, Greenhouse and Ashby postings work
+- A single GET to `https://r.jina.ai/<url>`: no SDK, no key, no quota to run out
+- Scrapingdog's free plan allowed 1,000 requests, ran out, and then every URL answered 403, which silently broke the URL flow
 
 **The fallback is critical.** If scraping fails, the user can always switch to "Text Mode" and paste the raw JD text. The AI pipeline is URL-agnostic — it only cares about the plaintext input, not how it was obtained.
 
@@ -363,7 +360,7 @@ This prevents:
 
 ### Challenge 3: Anti-Bot Protection on Job Boards
 **Problem:** LinkedIn, Indeed, and Glassdoor block direct HTTP requests, returning empty HTML or CAPTCHA pages.
-**Solution:** Integrated ScrapingDog as a proxy service. If the key is not configured, the system falls back to direct requests and prompts the user to paste text manually.
+**Solution:** A direct request first, then the free Jina Reader, which loads the page in a real browser; if both fail, the user is asked to paste the text. (First built on Scrapingdog; replaced in 2026-11 when its free plan ran out and every URL answered 403.)
 
 ### Challenge 4: react-hook-form Stripping AI Fields
 **Problem:** AI-generated fields (`matchScore`, `missingSkills`) were silently dropped during form submission because they weren't registered in the form's `defaultValues`.
@@ -381,7 +378,7 @@ This prevents:
 |:----------|:--------|:---------|
 | **Kanban board load** | ~200ms | Single MongoDB query with compound index |
 | **Card drag-and-drop** | ~0ms (perceived) | Optimistic update; API fires async |
-| **AI JD extraction** | 3-8s | ScrapingDog scrape (~2s) + LLM inference (~3-5s) |
+| **AI JD extraction** | ~10-15s (measured 2026-11-09, free models) | Page fetch + LLM inference; the largest free model took 9.5 s without a resume and 13.2 s with one |
 | **CSV export** | ~0ms | Client-side Blob generation, no server round-trip |
 | **Dashboard render** | ~50ms | All metrics computed from cached React Query data |
 | **Activity addition** | ~150ms | `$push` atomic operation (no full document replacement) |
