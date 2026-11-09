@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,7 +7,6 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { useCreateApplication, useParseJD } from '../../hooks/useApplications';
 import { toast } from 'sonner';
-import { Sparkles, Link as LinkIcon, FileText, Loader2 } from 'lucide-react';
 
 const applicationSchema = z.object({
   company: z.string().min(1, 'Company is required'),
@@ -30,9 +29,24 @@ interface AddApplicationModalProps {
   onClose: () => void;
 }
 
+/** Elapsed seconds while the AI call runs, so a slow free model never looks like a frozen button. */
+const useElapsed = (active: boolean) => {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    if (!active) {
+      setSeconds(0);
+      return;
+    }
+    const t = setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [active]);
+  return seconds;
+};
+
 export const AddApplicationModal: React.FC<AddApplicationModalProps> = ({ isOpen, onClose }) => {
   const createApplication = useCreateApplication();
   const parseJD = useParseJD();
+  const elapsed = useElapsed(parseJD.isPending);
 
   const [mode, setMode] = useState<'url' | 'text'>('url');
   const [parseInput, setParseInput] = useState('');
@@ -51,7 +65,7 @@ export const AddApplicationModal: React.FC<AddApplicationModalProps> = ({ isOpen
       matchScore: null,
       missingSkills: [],
       resumeSuggestions: [],
-    }
+    },
   });
 
   const onSubmit = async (data: FormValues) => {
@@ -65,7 +79,7 @@ export const AddApplicationModal: React.FC<AddApplicationModalProps> = ({ isOpen
       onError: (error) => {
         const err = error as any;
         toast.error(err.response?.data?.message || 'Failed to add application');
-      }
+      },
     });
   };
 
@@ -73,7 +87,7 @@ export const AddApplicationModal: React.FC<AddApplicationModalProps> = ({ isOpen
     if (!parseInput.trim()) return toast.error('Please provide a URL or Text');
 
     const payload = mode === 'url' ? { url: parseInput, text: undefined } : { url: undefined, text: parseInput };
-    
+
     parseJD.mutate(payload, {
       onSuccess: (data) => {
         toast.success('Job details extracted successfully!');
@@ -83,7 +97,7 @@ export const AddApplicationModal: React.FC<AddApplicationModalProps> = ({ isOpen
         if (data.salaryRange) setValue('salaryRange', data.salaryRange);
         if (data.requiredSkills) setValue('requiredSkills', data.requiredSkills);
         if (mode === 'url') setValue('jdLink', parseInput);
-        
+
         // Pass through AI evaluation fields
         if (data.matchScore !== undefined) setValue('matchScore', data.matchScore);
         if (data.missingSkills) setValue('missingSkills', data.missingSkills);
@@ -91,147 +105,118 @@ export const AddApplicationModal: React.FC<AddApplicationModalProps> = ({ isOpen
       },
       onError: (error) => {
         const err = error as any;
-        toast.error(err.response?.data?.message || 'Failed to parse. Try pasting text manually.');
-      }
+        const message: string = err.response?.data?.message || '';
+        console.error('AI extraction failed:', message || err.message);
+        // The server lists every free model it tried; the visitor only needs to know what to do next.
+        toast.error(
+          message.startsWith('AI API Error')
+            ? 'The AI could not answer right now. The free models may be busy or the daily limit is reached. You can fill the fields by hand.'
+            : message || 'Failed to parse. Try pasting text manually.'
+        );
+      },
     });
   };
 
-  const tabStyle = (active: boolean): React.CSSProperties => ({
-    padding: '6px 14px',
-    fontSize: 12,
-    fontWeight: 600,
-    borderRadius: 8,
-    border: 'none',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    transition: 'all 0.2s',
-    ...(active 
-      ? { background: 'linear-gradient(135deg, #6366f1, #6063ee)', color: 'white', boxShadow: '0 4px 15px rgba(96,99,238,0.25)' }
-      : { background: 'transparent', color: '#a3aac4' }
-    ),
-  });
-
-  const inputStyle: React.CSSProperties = {
-    flex: 1,
-    borderRadius: 12,
-    border: '1.5px solid rgba(64,72,93,0.15)',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    padding: '12px 16px',
-    fontSize: 14,
-    color: '#dee5ff',
-    outline: 'none',
-    fontFamily: 'inherit',
-    transition: 'all 0.2s',
-  };
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add New Application" maxWidth="max-w-2xl">
-      
-      {/* AI Parsing Section */}
-      <div style={{
-        marginBottom: 28,
-        padding: 24,
-        backgroundColor: 'rgba(20,31,56,0.5)',
-        border: '1px solid rgba(99,102,241,0.1)',
-        borderRadius: 16,
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Gradient */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(99,102,241,0.04), transparent)', pointerEvents: 'none' }} />
-        
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', color: '#a3a6ff', fontWeight: 600, fontSize: 14 }}>
-            <Sparkles size={16} style={{ marginRight: 8 }} />
-            AI Auto-Fill
-          </div>
-          <div style={{ display: 'flex', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 10, padding: 3, border: '1px solid rgba(64,72,93,0.15)' }}>
-            <button type="button" onClick={() => setMode('url')} style={tabStyle(mode === 'url')}>
-              <LinkIcon size={11} style={{ marginRight: 6 }} /> URL
+    <Modal isOpen={isOpen} onClose={onClose} title="Add application" maxWidth="max-w-2xl">
+      {/* AI fill */}
+      <section className="fill-box" aria-labelledby="fill-title">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+          <h3 id="fill-title" className="sec-title" style={{ border: 0, margin: 0, padding: 0 }}>
+            Fill from a posting
+          </h3>
+          <div className="seg" role="group" aria-label="Posting source">
+            <button type="button" aria-pressed={mode === 'url'} onClick={() => setMode('url')}>
+              URL
             </button>
-            <button type="button" onClick={() => setMode('text')} style={tabStyle(mode === 'text')}>
-              <FileText size={11} style={{ marginRight: 6 }} /> Text
+            <button type="button" aria-pressed={mode === 'text'} onClick={() => setMode('text')}>
+              Text
             </button>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 12, position: 'relative', zIndex: 1 }}>
-          {mode === 'url' ? (
-            <input type="url" placeholder="Paste job posting URL (e.g. from LinkedIn)..." value={parseInput} onChange={(e) => setParseInput(e.target.value)} style={inputStyle} />
-          ) : (
-            <textarea placeholder="Paste full job description text here..." rows={3} value={parseInput} onChange={(e) => setParseInput(e.target.value)} style={{ ...inputStyle, resize: 'none' }} />
-          )}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 240px' }}>
+            <label className="visually-hidden" htmlFor="parse-input">
+              {mode === 'url' ? 'Job posting URL' : 'Job description text'}
+            </label>
+            {mode === 'url' ? (
+              <input
+                id="parse-input"
+                className="field"
+                type="url"
+                placeholder="Paste a job posting URL, for example from LinkedIn"
+                value={parseInput}
+                onChange={(e) => setParseInput(e.target.value)}
+              />
+            ) : (
+              <textarea
+                id="parse-input"
+                className="textarea"
+                placeholder="Paste the full job description text here"
+                rows={4}
+                value={parseInput}
+                onChange={(e) => setParseInput(e.target.value)}
+              />
+            )}
+          </div>
           <Button type="button" onClick={handleParse} isLoading={parseJD.isPending}>
             Extract
           </Button>
         </div>
-        <p style={{ fontSize: 11, color: 'rgba(163,170,196,0.5)', marginTop: 10, position: 'relative', zIndex: 1 }}>
-          {mode === 'url' ? 'Note: Some job boards block scrapers. Use Text mode if parsing fails.' : 'Pro-tip: Just CTRL+A and CTRL+C the entire visible page.'}
+
+        <p className="field-note">
+          {mode === 'url'
+            ? 'Some job boards block scrapers. Use Text mode if the URL fails.'
+            : 'Tip: select the whole page with Ctrl+A, copy it, and paste it here.'}
         </p>
-      </div>
+        <p className="field-note">
+          The AI runs on free models. It can take 20 to 45 seconds, and it may be unavailable once the daily limit is reached.
+        </p>
+
+        <div role="status" aria-live="polite">
+          {parseJD.isPending && (
+            <p className="working">
+              Reading the posting… {elapsed} s. Free models can be slow; you can fill the fields by hand instead.
+            </p>
+          )}
+        </div>
+      </section>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} style={{ position: 'relative' }}>
-        
-        {/* Shimmer overlay while parsing */}
-        {parseJD.isPending && (
-          <div style={{ position: 'absolute', inset: 0, zIndex: 20, backgroundColor: 'rgba(6,14,32,0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 16 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Loader2 size={32} style={{ color: '#a3a6ff', animation: 'spin 1s linear infinite', marginBottom: 12 }} />
-              <span style={{ color: '#a3a6ff', fontSize: 14, fontWeight: 600 }}>Extracting with AI...</span>
+      <form onSubmit={handleSubmit(onSubmit)} style={{ marginTop: 20 }}>
+        <fieldset disabled={parseJD.isPending} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+          <div className="form-grid" style={{ marginBottom: 16 }}>
+            <Input label="Company name" placeholder="e.g. Google" {...register('company')} error={errors.company?.message} />
+            <Input label="Role title" placeholder="e.g. Senior Frontend Engineer" {...register('role')} error={errors.role?.message} />
+          </div>
+
+          <div className="form-grid" style={{ marginBottom: 16 }}>
+            <Input label="Location" placeholder="e.g. Remote, San Francisco" {...register('location')} error={errors.location?.message} />
+            <Input label="Salary range" placeholder="e.g. 120k-150k" {...register('salaryRange')} error={errors.salaryRange?.message} />
+          </div>
+
+          <div className="form-grid">
+            <div>
+              <label className="label" htmlFor="add-status">Initial status</label>
+              <select id="add-status" className="select" style={{ width: '100%' }} {...register('status')}>
+                <option value="Applied">Applied</option>
+                <option value="Phone Screen">Phone Screen</option>
+                <option value="Interview">Interview</option>
+                <option value="Offer">Offer</option>
+                <option value="Rejected">Rejected</option>
+              </select>
             </div>
+            <Input type="date" label="Follow-up date" {...register('followUpDate')} error={errors.followUpDate?.message} />
           </div>
-        )}
+        </fieldset>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-          <Input label="Company Name" placeholder="e.g. Google" {...register('company')} error={errors.company?.message} />
-          <Input label="Role Title" placeholder="e.g. Senior Frontend Engineer" {...register('role')} error={errors.role?.message} />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-          <Input label="Location" placeholder="e.g. Remote, San Francisco" {...register('location')} error={errors.location?.message} />
-          <Input label="Salary Range" placeholder="e.g. 120k-150k" {...register('salaryRange')} error={errors.salaryRange?.message} />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
-          <div style={{ width: '100%' }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#a3aac4', marginBottom: 8 }}>
-              Initial Status
-            </label>
-            <select
-              {...register('status')}
-              style={{
-                display: 'flex',
-                height: 48,
-                width: '100%',
-                borderRadius: 12,
-                border: '1.5px solid rgba(64,72,93,0.2)',
-                backgroundColor: 'rgba(0,0,0,0.3)',
-                padding: '0 16px',
-                fontSize: 14,
-                color: '#dee5ff',
-                outline: 'none',
-                fontFamily: 'inherit',
-                appearance: 'none',
-              }}
-            >
-              <option value="Applied">Applied</option>
-              <option value="Phone Screen">Phone Screen</option>
-              <option value="Interview">Interview</option>
-              <option value="Offer">Offer</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-          </div>
-          <Input type="date" label="Follow-up Date" {...register('followUpDate')} error={errors.followUpDate?.message} />
-        </div>
-
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', alignItems: 'center', paddingTop: 20, borderTop: '1px solid rgba(64,72,93,0.1)' }}>
+        <div className="sheet-actions">
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" isLoading={createApplication.isPending}>
-            Save Application
+            Save application
           </Button>
         </div>
       </form>

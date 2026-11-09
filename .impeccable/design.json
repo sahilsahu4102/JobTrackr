@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-09T14:45:51Z",
+  "title": "Design System: JobTrackr",
+  "extensions": {
+    "colorMeta": {
+      "rail": {
+        "role": "neutral",
+        "displayName": "Enamel Rail",
+        "canonical": "#d5d9dc",
+        "tonalRamp": [
+          "#0b0d11",
+          "#45474b",
+          "#7e8285",
+          "#b8bcbf",
+          "#dadee0",
+          "#e5e8ea",
+          "#f0f1f2",
+          "#fbfbfc"
+        ]
+      },
+      "rail-deep": {
+        "role": "neutral",
+        "displayName": "Deep Rail",
+        "canonical": "#c3c9cf",
+        "tonalRamp": [
+          "#0b0d11",
+          "#404347",
+          "#74787e",
+          "#a9aeb4",
+          "#cbd0d5",
+          "#dadee2",
+          "#eaecee",
+          "#f9fafa"
+        ]
+      },
+      "docket": {
+        "role": "neutral",
+        "displayName": "Docket Stock",
+        "canonical": "#faf9f4",
+        "tonalRamp": [
+          "#0b0d11",
+          "#4f5052",
+          "#949493",
+          "#d8d7d4",
+          "#fbfaf5",
+          "#fcfbf8",
+          "#fdfdfb",
+          "#fefefe"
+        ]
+      },
+      "docket-sunk": {
+        "role": "neutral",
+        "displayName": "Sunk Docket",
+        "canonical": "#efede4",
+        "tonalRamp": [
+          "#0b0d11",
+          "#4c4d4d",
+          "#8d8d8a",
+          "#cecdc6",
+          "#f1efe7",
+          "#f5f4ee",
+          "#f9f9f5",
+          "#fdfdfc"
+        ]
+      },
+      "entry": {
+        "role": "neutral",
+        "displayName": "Entry Field",
+        "canonical": "#fefdfa",
+        "tonalRamp": [
+          "#0b0d11",
+          "#505254",
+          "#969696",
+          "#dbdbd9",
+          "#fefdfb",
+          "#fefefc",
+          "#fffefd",
+          "#fffffe"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Carbon Ink",
+        "canonical": "#1a1d21",
+        "tonalRamp": [
+          "#0b0d11",
+          "#0f1216",
+          "#14161a",
+          "#181b1f",
+          "#373a3e",
+          "#727477",
+          "#adaeb0",
+          "#e8e8e9"
+        ]
+      },
+      "ink-secondary": {
+        "role": "neutral",
+        "displayName": "Secondary Ink",
+        "canonical": "#464c55",
+        "tonalRamp": [
+          "#0b0d11",
+          "#1c1f24",
+          "#2d3138",
+          "#3e434b",
+          "#5e636b",
+          "#8d9197",
+          "#bdbfc2",
+          "#ecedee"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#5d6470",
+        "tonalRamp": [
+          "#0b0d11",
+          "#22262c",
+          "#3a3f47",
+          "#515862",
+          "#727882",
+          "#9ba0a7",
+          "#c5c8cc",
+          "#eff0f1"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline Rule",
+        "canonical": "#bebbae",
+        "tonalRamp": [
+          "#0b0d11",
+          "#3e3f3e",
+          "#71706b",
+          "#a4a298",
+          "#c6c4b8",
+          "#d7d5cd",
+          "#e8e7e2",
+          "#f8f8f7"
+        ]
+      },
+      "ballpoint-blue": {
+        "role": "primary",
+        "displayName": "Ballpoint Blue",
+        "canonical": "#1f4e9e",
+        "tonalRamp": [
+          "#0b0d11",
+          "#112039",
+          "#163262",
+          "#1c458a",
+          "#3c65aa",
+          "#7592c3",
+          "#afc0dc",
+          "#e9edf5"
+        ]
+      },
+      "action-red": {
+        "role": "secondary",
+        "displayName": "Action Red",
+        "canonical": "#c23b22",
+        "tonalRamp": [
+          "#0b0d11",
+          "#3f1a16",
+          "#74271b",
+          "#a83420",
+          "#ca543e",
+          "#da8777",
+          "#e9b9b0",
+          "#f9ebe9"
+        ]
+      },
+      "action-red-deep": {
+        "role": "secondary",
+        "displayName": "Action Red on Rail",
+        "canonical": "#a92e17",
+        "tonalRamp": [
+          "#0b0d11",
+          "#381613",
+          "#652014",
+          "#922916",
+          "#b44935",
+          "#ca7f70",
+          "#e0b4ac",
+          "#f6eae8"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Stage names, panel titles, buttons."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field labels and printed docket rows."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "CLOSED stamp settles once, 200ms; disabled under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "auth-stack",
+        "value": "960px"
+      },
+      {
+        "name": "phone",
+        "value": "720px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled action on a screen.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Add application</button>",
+      "css": ".ds-btn{font-family:'Sofia Sans Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:17px;letter-spacing:.04em;height:44px;padding:0 20px;border:1.5px solid #1a1d21;border-radius:0;cursor:pointer}.ds-btn-primary{background:#1a1d21;color:#faf9f4}.ds-btn-primary:hover{background:#1f4e9e;border-color:#1f4e9e}.ds-btn-primary:focus-visible{outline:2px solid #1f4e9e;outline-offset:2px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action.",
+      "html": "<button class=\"ds-btn ds-btn-outline\">Export CSV</button>",
+      "css": ".ds-btn{font-family:'Sofia Sans Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:17px;letter-spacing:.04em;height:44px;padding:0 20px;border:1.5px solid #1a1d21;border-radius:0;cursor:pointer}.ds-btn-outline{background:transparent;color:#1a1d21}.ds-btn-outline:hover{background:#1a1d21;color:#faf9f4}.ds-btn-outline:focus-visible{outline:2px solid #1f4e9e;outline-offset:2px}"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "A typing field; what is typed is ballpoint blue.",
+      "html": "<label class=\"ds-label\">Company name</label><input class=\"ds-field\" placeholder=\"e.g. Google\">",
+      "css": ".ds-label{display:block;font-family:'Sofia Sans Condensed','Arial Narrow',sans-serif;font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#464c55;margin-bottom:6px}.ds-field{display:block;width:100%;height:44px;padding:0 12px;background:#fefdfa;border:1.5px solid #1a1d21;border-radius:0;color:#1f4e9e;font-size:16px;caret-color:#1f4e9e}.ds-field:focus-visible{outline:2px solid #1f4e9e}"
+    },
+    {
+      "name": "Docket",
+      "kind": "card",
+      "refersTo": "docket",
+      "description": "One application as a flat ruled slip.",
+      "html": "<article class=\"ds-docket\"><div class=\"ds-head\"><h4>Frontend Engineer</h4><span class=\"ds-score\">76<small>%</small></span></div><p class=\"ds-co\">Helix Health</p><dl class=\"ds-rows\"><div><dt>Location</dt><dd>Remote</dd></div><div><dt>Applied</dt><dd>Nov 5</dd></div></dl></article>",
+      "css": ".ds-docket{background:#faf9f4;border:1px solid #1a1d21;width:260px;font-family:'Sofia Sans',sans-serif}.ds-head{display:flex;justify-content:space-between;gap:8px;padding:10px 12px 0}.ds-head h4{margin:0;font-size:17px;font-weight:700}.ds-score{font-family:'Sofia Sans Condensed',sans-serif;font-weight:700;border:1.5px solid #1a1d21;padding:1px 7px;font-size:16px}.ds-score small{font-size:.75em}.ds-co{margin:0;padding:0 12px 8px;color:#464c55}.ds-rows{margin:0;border-top:1px solid #bebbae}.ds-rows div{display:flex;gap:10px;padding:5px 12px;border-bottom:1px solid #bebbae;font-size:15px}.ds-rows dt{width:4.9em;font-family:'Sofia Sans Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#464c55;padding-top:2px}.ds-rows dd{margin:0;color:#1f4e9e}"
+    },
+    {
+      "name": "Match Score Box",
+      "kind": "custom",
+      "refersTo": "score-box",
+      "description": "Match score as a boxed number; the border is the band.",
+      "html": "<span class=\"ds-s ds-hi\">88<small>%</small></span> <span class=\"ds-s ds-mid\">72<small>%</small></span> <span class=\"ds-s ds-lo\">49<small>%</small></span>",
+      "css": ".ds-s{display:inline-block;font-family:'Sofia Sans Condensed',sans-serif;font-weight:700;font-size:16px;padding:1px 7px;border:1.5px solid #1a1d21;background:#faf9f4;margin-right:8px}.ds-s small{font-size:.75em}.ds-hi{border:4px double #1a1d21;padding:0 5px}.ds-lo{border-style:dashed}"
+    },
+    {
+      "name": "Closed Stamp",
+      "kind": "custom",
+      "refersTo": "docket",
+      "description": "A rejected docket is stamped, not removed.",
+      "html": "<span class=\"ds-stamp\">Closed</span>",
+      "css": ".ds-stamp{display:inline-block;font-family:'Sofia Sans Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;padding:2px 10px 1px;border:2px solid #1a1d21;color:#1a1d21}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Job Bag",
+    "overview": "Every application is a flat ruled docket hanging in one of five stage bays on a grey rail: printed labels in ink, filled-in entries in ballpoint blue, red only where action is needed.",
+    "keyCharacteristics": [
+      "A grey enamel rail, five stage bays, flat dockets ruled in 1px ink.",
+      "Printed labels (condensed, uppercase, ink) against filled-in entries (blue).",
+      "Match score is a boxed number whose border is the band: double, single or dashed.",
+      "Red marks only a follow-up that is overdue or due within two days, and form errors.",
+      "A rejected docket is stamped CLOSED and stays fully legible.",
+      "Square corners everywhere; no gradients, glass, glow, orbs or sparkle icons."
+    ],
+    "rules": [
+      {
+        "name": "The Rationed Red Rule",
+        "body": "Red appears only where something needs attention. If everything is red, nothing is.",
+        "section": "colors"
+      },
+      {
+        "name": "The Printed-versus-Filled Rule",
+        "body": "Labels are printed (ink, condensed). Values the user typed or the AI extracted are filled in (ballpoint blue).",
+        "section": "colors"
+      },
+      {
+        "name": "The Measure Rule",
+        "body": "Prose never runs wider than about 62 characters.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ruled-Not-Raised Rule",
+        "body": "Separate with a rule, group with a border, never lift with a shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do label sample data as sample, and say what the AI is (free models that can be slow or limited).",
+      "Do give every slow or failing request a visible message and a way forward.",
+      "Do carry state as a mark plus a word or number.",
+      "Do keep red for action and errors only."
+    ],
+    "donts": [
+      "Don't add gradients, glass, glow, blurred orbs, shadows or rounded corners.",
+      "Don't use sparkle icons or the word AI as decoration; name what the feature does.",
+      "Don't colour the stages or the match bands; the stage is the column and the band is the border.",
+      "Don't invent users, metrics or accuracy figures."
+    ]
+  }
+}

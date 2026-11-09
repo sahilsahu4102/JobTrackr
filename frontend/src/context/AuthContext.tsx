@@ -5,6 +5,8 @@ import type { User, MeResponse } from '../types';
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  /** Guest sessions are created by POST /auth/guest and use an @guest.jobtrackr.app address. */
+  isGuest: boolean;
   isLoading: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
@@ -54,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isGuest: !!user && user.email.endsWith('@guest.jobtrackr.app'), isLoading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
